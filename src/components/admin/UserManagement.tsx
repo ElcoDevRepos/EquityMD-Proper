@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Search, Filter, User, Building2, Shield, CheckCircle, XCircle, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Mail, Edit, Save, X } from 'lucide-react';
+import { Search, User, Building2, Shield, CheckCircle, XCircle, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Mail, Edit, Save, X } from 'lucide-react';
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
 
@@ -52,7 +52,25 @@ export function UserManagement() {
   const [createSuccess, setCreateSuccess] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
-  const [profileDetails, setProfileDetails] = useState<any>(null);
+  const [profileDetails, setProfileDetails] = useState<{
+    minimum_investment?: number;
+    preferred_property_types?: string[];
+    preferred_locations?: string[];
+    investment_preferences?: {
+      experience_level?: string;
+      years_investing?: string;
+      bio?: string;
+    };
+    accredited_status?: boolean;
+    company_name?: string;
+    company_description?: string;
+    website_url?: string;
+    linkedin_url?: string;
+    years_in_business?: number;
+    total_deal_volume?: number;
+    city?: string;
+    state?: string;
+  } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileLoading, setProfileLoading] = useState(false);
 
@@ -112,11 +130,10 @@ export function UserManagement() {
   const toggleActiveStatus = async (userId: string, currentStatus: boolean) => {
     if (!window.confirm(`Are you sure you want to ${currentStatus ? 'deactivate' : 'reactivate'} this user?`)) return;
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ is_active: !currentStatus })
-        .eq('id', userId)
-        .select();
+        .eq('id', userId);
       if (error) throw error;
       setUsers(users.map((u: UserData) => u.id === userId ? { ...u, is_active: !currentStatus } : u));
       if (selectedUser && selectedUser.id === userId) {
@@ -150,18 +167,17 @@ export function UserManagement() {
 
       console.log(`Attempting to toggle ${field} for user:`, user.email, 'from', user[field], 'to', !user[field]);
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ [field]: !user[field] })
-        .eq('id', userId)
-        .select();
+        .eq('id', userId);
 
       if (error) {
         console.error('Supabase error:', error);
         throw error;
       }
 
-      console.log('Update successful:', data);
+      console.log('Update successful');
 
       // Update local state
       setUsers(users.map(u => 

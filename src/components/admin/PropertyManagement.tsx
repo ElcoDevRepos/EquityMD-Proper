@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Search, Filter, Building2, MapPin, DollarSign, TrendingUp, Clock, Plus, Edit, Archive, CheckCircle, XCircle, Eye, Save, X } from 'lucide-react';
+import { Search, MapPin, DollarSign, TrendingUp, Clock, Plus, Edit, Archive, Eye, Save, X } from 'lucide-react';
 
 interface Deal {
   id: string;
@@ -150,7 +150,7 @@ export function PropertyManagement() {
     }
   };
 
-  const updateEditingField = (field: keyof EditingDeal, value: any) => {
+  const updateEditingField = (field: keyof EditingDeal, value: string | number) => {
     if (!editingDeal) return;
     setEditingDeal({ ...editingDeal, [field]: value });
   };
