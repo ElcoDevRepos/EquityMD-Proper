@@ -114,9 +114,25 @@ export function PropertyManagement() {
   };
 
   const saveDeal = async () => {
-    if (!editingDeal) return;
+    console.log('Save deal function called with editingDeal:', editingDeal);
+    if (!editingDeal) {
+      console.log('No editingDeal found, returning');
+      return;
+    }
 
     setSaving(true);
+    console.log('Attempting to save deal with data:', {
+      title: editingDeal.title,
+      location: editingDeal.location,
+      property_type: editingDeal.property_type,
+      minimum_investment: editingDeal.minimum_investment,
+      target_irr: editingDeal.target_irr,
+      investment_term: editingDeal.investment_term,
+      status: editingDeal.status,
+      cover_image_url: editingDeal.cover_image_url,
+      updated_at: new Date().toISOString()
+    });
+
     try {
       const { error } = await supabase
         .from('deals')
@@ -133,7 +149,14 @@ export function PropertyManagement() {
         })
         .eq('id', editingDeal.id);
 
-      if (error) throw error;
+      console.log('Supabase update result - error:', error);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Update successful, updating local state');
 
       // Update local state
       setDeals(deals.map(deal => 
@@ -370,7 +393,10 @@ export function PropertyManagement() {
                       {isEditing ? (
                         <>
                           <button
-                            onClick={saveDeal}
+                            onClick={() => {
+                              console.log('Save button clicked!');
+                              saveDeal();
+                            }}
                             disabled={saving}
                             className="text-green-600 hover:text-green-900 disabled:opacity-50"
                             title="Save changes"

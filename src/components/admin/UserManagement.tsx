@@ -211,9 +211,23 @@ export function UserManagement() {
   };
 
   const saveUser = async () => {
-    if (!editingUser) return;
+    console.log('Save user function called with editingUser:', editingUser);
+    if (!editingUser) {
+      console.log('No editingUser found, returning');
+      return;
+    }
 
     setSaving(true);
+    console.log('Attempting to save user with data:', {
+      email: editingUser.email,
+      full_name: editingUser.full_name,
+      user_type: editingUser.user_type,
+      is_admin: editingUser.is_admin,
+      is_verified: editingUser.is_verified,
+      is_active: editingUser.is_active,
+      updated_at: new Date().toISOString()
+    });
+
     try {
       const { error } = await supabase
         .from('profiles')
@@ -228,7 +242,14 @@ export function UserManagement() {
         })
         .eq('id', editingUser.id);
 
-      if (error) throw error;
+      console.log('Supabase update result - error:', error);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Update successful, updating local state');
 
       // Update local state
       setUsers(users.map(user => 
@@ -709,7 +730,10 @@ Best regards,\nThe EquityMD Team
                         {isEditing ? (
                           <>
                             <button
-                              onClick={saveUser}
+                              onClick={() => {
+                                console.log('Save button clicked!');
+                                saveUser();
+                              }}
                               disabled={saving}
                               className="text-green-600 hover:text-green-900 disabled:opacity-50"
                               title="Save changes"
