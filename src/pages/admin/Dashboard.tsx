@@ -14,10 +14,12 @@ import { SyndicatorVerificationAdmin } from '../../components/SyndicatorVerifica
 import { SystemManagement } from '../../components/admin/SystemManagement';
 import { DeactivatedAccountsManagement } from '../../components/admin/DeactivatedAccountsManagement';
 import { useAuthStore } from '../../lib/store';
-import { BarChart, Users, Building2, CreditCard, FileText, Settings, Upload, CheckCircle, Shield, Database, UserX } from 'lucide-react';
+import { AdminProvider, useAdmin } from '../../contexts/AdminContext';
+import { BarChart, Users, Building2, CreditCard, FileText, Settings, Upload, CheckCircle, Shield, Database, UserX, Save } from 'lucide-react';
 
-export function AdminDashboard() {
+function AdminDashboardContent() {
   const { profile } = useAuthStore();
+  const { hasChanges, saveAllChanges, saving, changes } = useAdmin();
   const [activeTab, setActiveTab] = useState<'analytics' | 'users' | 'deactivated' | 'properties' | 'credits' | 'import-investors' | 'import-syndicators' | 'settings' | 'claims' | 'verification' | 'system'>('analytics');
 
   if (!profile) return (
@@ -84,6 +86,26 @@ export function AdminDashboard() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
           <div className="flex items-center gap-3">
+            {/* Global Save Button */}
+            {hasChanges && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  {changes.length} change{changes.length !== 1 ? 's' : ''} pending
+                </span>
+                <button
+                  onClick={async () => {
+                    const result = await saveAllChanges();
+                    alert(result.message);
+                  }}
+                  disabled={saving}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save All Changes'}
+                </button>
+              </div>
+            )}
+            
             <button
               onClick={quickClearCache}
               className="flex items-center px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
@@ -91,7 +113,6 @@ export function AdminDashboard() {
               <Database className="h-4 w-4 mr-2" />
               Quick Clear Cache
             </button>
-
           </div>
         </div>
 
@@ -241,6 +262,15 @@ export function AdminDashboard() {
       <Footer />
     </div>
   );
+}
+
+export function AdminDashboard() {
+  return (
+    <AdminProvider>
+      <AdminDashboardContent />
+    </AdminProvider>
+  );
+}
 }
 
 export default AdminDashboard;
