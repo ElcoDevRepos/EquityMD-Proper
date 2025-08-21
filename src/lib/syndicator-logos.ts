@@ -1,6 +1,6 @@
 // Temporary syndicator logo mapping until database can be updated via admin access
 const SYNDICATOR_LOGO_MAP: Record<string, string> = {
-  'Sutera Properties': `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/syndicatorlogos/sutera.png`,
+  'Sutera Properties': `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/syndicatorlogos/suteraproperties.png`,
   'Back Bay Capital': `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/syndicatorlogos/backbay.png`,
   'Starboard Realty': `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/Starboard_reality.jpg`,
   'Clarion Partners': `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/syndicatorlogos/clarionpartners.png`,
@@ -41,17 +41,24 @@ improve operational efficiency and maximize revenue.`,
 };
 
 export function getSyndicatorLogo(companyName: string, currentLogoUrl?: string | null): string | null {
+  console.log('🔍 getSyndicatorLogo called for:', companyName, 'with currentLogoUrl:', currentLogoUrl);
+  
   // If there's already a logo URL set, use it
   if (currentLogoUrl) {
     // If it's a relative path, construct the full URL
     if (!currentLogoUrl.startsWith('http')) {
-      return `${import.meta.env.VITE_SUPABASE_URL}${currentLogoUrl}`;
+      const fullUrl = `${import.meta.env.VITE_SUPABASE_URL}${currentLogoUrl}`;
+      console.log('🔗 Constructed full URL from relative path:', fullUrl);
+      return fullUrl;
     }
+    console.log('🔗 Using existing logo URL:', currentLogoUrl);
     return currentLogoUrl;
   }
 
   // Check if we have a hardcoded logo for this syndicator
-  return SYNDICATOR_LOGO_MAP[companyName] || null;
+  const hardcodedLogo = SYNDICATOR_LOGO_MAP[companyName];
+  console.log('🔍 Hardcoded logo for', companyName, ':', hardcodedLogo);
+  return hardcodedLogo || null;
 }
 
 export function getSyndicatorLocation(companyName: string, currentCity?: string, currentState?: string): { city: string; state: string } {

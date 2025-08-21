@@ -249,7 +249,7 @@ export function Directory() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {syndicators
-              .filter(s => s.average_rating >= 4.5 && s.total_reviews >= 10)
+              .filter(s => s.verification_status === 'featured' || s.verification_status === 'premium')
               .slice(0, 3)
               .map((syndicator) => (
                 <Link
