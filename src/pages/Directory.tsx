@@ -81,7 +81,7 @@ export function Directory() {
       const { data: syndicatorData, error: syndicatorError } = await supabase
         .from('syndicator_profiles')
         .select()
-        .in('verification_status', ['verified', 'premier']);
+        .in('verification_status', ['verified', 'featured', 'premium']);
 
       if (syndicatorError) {
         console.error('❌ Error fetching syndicators:', syndicatorError);
