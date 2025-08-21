@@ -247,9 +247,16 @@ export function Directory() {
             <h2 className="text-2xl font-bold text-gray-900">Featured Syndicators</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {syndicators
-              .filter(s => s.verification_status === 'featured' || s.verification_status === 'premium')
-              .slice(0, 3)
+            {(() => {
+              const featuredSyndicators = syndicators.filter(s => s.verification_status === 'featured' || s.verification_status === 'premium');
+              console.log('🔍 Featured syndicators filter:', {
+                total: syndicators.length,
+                featured: featuredSyndicators.length,
+                featuredNames: featuredSyndicators.map(s => ({ name: s.company_name, status: s.verification_status })),
+                allStatuses: syndicators.map(s => ({ name: s.company_name, status: s.verification_status }))
+              });
+              return featuredSyndicators.slice(0, 3);
+            })()
               .map((syndicator) => (
                 <Link
                   key={syndicator.id}
