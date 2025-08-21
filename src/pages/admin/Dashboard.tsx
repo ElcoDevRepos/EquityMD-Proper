@@ -271,6 +271,5 @@ export function AdminDashboard() {
     </AdminProvider>
   );
 }
-}
 
 export default AdminDashboard;
