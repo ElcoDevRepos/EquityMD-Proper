@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { Search, Filter, User, Building2, Shield, CheckCircle, XCircle, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Mail } from 'lucide-react';
+import { Search, Filter, User, Building2, Shield, CheckCircle, XCircle, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Mail, Edit, Save, X } from 'lucide-react';
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
 
@@ -16,6 +16,16 @@ interface UserData {
   avatar_url?: string;
 }
 
+interface EditingUser {
+  id: string;
+  email: string;
+  full_name: string;
+  user_type: 'investor' | 'syndicator';
+  is_admin: boolean;
+  is_verified: boolean;
+  is_active?: boolean;
+}
+
 type SortField = 'created_at' | 'full_name' | 'email';
 type SortDirection = 'asc' | 'desc';
 
@@ -27,6 +37,8 @@ export function UserManagement() {
   const [filter, setFilter] = useState<'all' | 'investors' | 'syndicators' | 'admins'>('all');
   const [sortField, setSortField] = useState<SortField>('created_at');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [editingUser, setEditingUser] = useState<EditingUser | null>(null);
+  const [saving, setSaving] = useState(false);
   
   // Create user modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -164,6 +176,62 @@ export function UserManagement() {
       console.error('Error toggling user status:', err);
       setError('Failed to update user status. Please try again.');
     }
+  };
+
+  const startEditing = (user: UserData) => {
+    setEditingUser({
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      user_type: user.user_type,
+      is_admin: user.is_admin,
+      is_verified: user.is_verified,
+      is_active: user.is_active
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingUser(null);
+  };
+
+  const saveUser = async () => {
+    if (!editingUser) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          email: editingUser.email,
+          full_name: editingUser.full_name,
+          user_type: editingUser.user_type,
+          is_admin: editingUser.is_admin,
+          is_verified: editingUser.is_verified,
+          is_active: editingUser.is_active,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingUser.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === editingUser.id ? { ...user, ...editingUser } : user
+      ));
+
+      setEditingUser(null);
+      alert('User updated successfully!');
+    } catch (error) {
+      console.error('Error saving user:', error);
+      alert('Error saving user. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const updateEditingField = (field: keyof EditingUser, value: any) => {
+    if (!editingUser) return;
+    setEditingUser({ ...editingUser, [field]: value });
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -453,98 +521,207 @@ Best regards,\nThe EquityMD Team
                   Active
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Details
+                  Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className={`hover:bg-gray-50 ${user.is_active === false ? 'bg-gray-100 opacity-60' : ''}`}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                        {user.avatar_url ? (
-                          <img src={user.avatar_url} alt="" className="h-10 w-10 rounded-full" />
+              {filteredUsers.map((user) => {
+                const isEditing = editingUser?.id === user.id;
+                
+                return (
+                  <tr key={user.id} className={`hover:bg-gray-50 ${user.is_active === false ? 'bg-gray-100 opacity-60' : ''} ${isEditing ? 'bg-blue-50' : ''}`}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                          {user.avatar_url ? (
+                            <img src={user.avatar_url} alt="" className="h-10 w-10 rounded-full" />
+                          ) : (
+                            <User className="h-5 w-5 text-gray-600" />
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          {isEditing ? (
+                            <div className="space-y-2">
+                              <input
+                                type="text"
+                                value={editingUser.full_name}
+                                onChange={(e) => updateEditingField('full_name', e.target.value)}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                              />
+                              <input
+                                type="email"
+                                value={editingUser.email}
+                                onChange={(e) => updateEditingField('email', e.target.value)}
+                                className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
+                              <div className="text-sm text-gray-500">{user.email}</div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div>
+                        <div>{new Date(user.created_at).toLocaleDateString()}</div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(user.created_at).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isEditing ? (
+                        <select
+                          value={editingUser.user_type}
+                          onChange={(e) => updateEditingField('user_type', e.target.value as 'investor' | 'syndicator')}
+                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="investor">Investor</option>
+                          <option value="syndicator">Syndicator</option>
+                        </select>
+                      ) : (
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.user_type === 'investor' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {user.user_type === 'investor' ? (
+                            <User className="h-3 w-3 mr-1" />
+                          ) : (
+                            <Building2 className="h-3 w-3 mr-1" />
+                          )}
+                          {user.user_type === 'investor' ? 'Investor' : 'Syndicator'}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isEditing ? (
+                        <select
+                          value={editingUser.is_verified ? 'verified' : 'unverified'}
+                          onChange={(e) => updateEditingField('is_verified', e.target.value === 'verified')}
+                          className={`px-3 py-1 rounded-full text-sm border ${
+                            editingUser.is_verified
+                              ? 'bg-green-100 text-green-800 border-green-300'
+                              : 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                          }`}
+                        >
+                          <option value="verified">Verified</option>
+                          <option value="unverified">Unverified</option>
+                        </select>
+                      ) : (
+                        <button
+                          onClick={() => toggleUserStatus(user.id, 'is_verified')}
+                          className={`flex items-center px-3 py-1 rounded-full text-sm transition-colors hover:opacity-80 ${
+                            user.is_verified
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {user.is_verified ? (
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                          ) : (
+                            <XCircle className="h-4 w-4 mr-1" />
+                          )}
+                          {user.is_verified ? 'Verified' : 'Unverified'}
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isEditing ? (
+                        <select
+                          value={editingUser.is_admin ? 'admin' : 'user'}
+                          onChange={(e) => updateEditingField('is_admin', e.target.value === 'admin')}
+                          className={`px-3 py-1 rounded-full text-sm border ${
+                            editingUser.is_admin
+                              ? 'bg-purple-100 text-purple-800 border-purple-300'
+                              : 'bg-gray-100 text-gray-800 border-gray-300'
+                          }`}
+                        >
+                          <option value="user">User</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      ) : (
+                        <button
+                          onClick={() => toggleUserStatus(user.id, 'is_admin')}
+                          className={`flex items-center px-3 py-1 rounded-full text-sm transition-colors hover:opacity-80 ${
+                            user.is_admin
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          <Shield className="h-4 w-4 mr-1" />
+                          {user.is_admin ? 'Admin' : 'User'}
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {isEditing ? (
+                        <select
+                          value={editingUser.is_active === false ? 'inactive' : 'active'}
+                          onChange={(e) => updateEditingField('is_active', e.target.value === 'active')}
+                          className={`px-3 py-1 rounded-full text-sm border ${
+                            editingUser.is_active === false
+                              ? 'bg-red-100 text-red-800 border-red-300'
+                              : 'bg-green-100 text-green-800 border-green-300'
+                          }`}
+                        >
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      ) : (
+                        <button
+                          onClick={() => toggleActiveStatus(user.id, user.is_active !== false)}
+                          className={`flex items-center px-3 py-1 rounded-full text-sm transition-colors hover:opacity-80 ${user.is_active === false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                        >
+                          {user.is_active === false ? 'Reactivate' : 'Deactivate'}
+                        </button>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => openUserDrawer(user)}
+                          className="text-blue-600 hover:underline font-medium"
+                        >
+                          View Details
+                        </button>
+                        
+                        {isEditing ? (
+                          <>
+                            <button
+                              onClick={saveUser}
+                              disabled={saving}
+                              className="text-green-600 hover:text-green-900 disabled:opacity-50"
+                              title="Save changes"
+                            >
+                              <Save className="h-5 w-5" />
+                            </button>
+                            <button
+                              onClick={cancelEditing}
+                              className="text-red-600 hover:text-red-900"
+                              title="Cancel edit"
+                            >
+                              <X className="h-5 w-5" />
+                            </button>
+                          </>
                         ) : (
-                          <User className="h-5 w-5 text-gray-600" />
+                          <button
+                            onClick={() => startEditing(user)}
+                            className="text-gray-600 hover:text-blue-900"
+                            title="Edit user"
+                          >
+                            <Edit className="h-5 w-5" />
+                          </button>
                         )}
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.full_name}</div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div>
-                      <div>{new Date(user.created_at).toLocaleDateString()}</div>
-                      <div className="text-xs text-gray-400">
-                        {new Date(user.created_at).toLocaleTimeString()}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.user_type === 'investor' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {user.user_type === 'investor' ? (
-                        <User className="h-3 w-3 mr-1" />
-                      ) : (
-                        <Building2 className="h-3 w-3 mr-1" />
-                      )}
-                      {user.user_type === 'investor' ? 'Investor' : 'Syndicator'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => toggleUserStatus(user.id, 'is_verified')}
-                      className={`flex items-center px-3 py-1 rounded-full text-sm transition-colors hover:opacity-80 ${
-                        user.is_verified
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                    >
-                      {user.is_verified ? (
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                      ) : (
-                        <XCircle className="h-4 w-4 mr-1" />
-                      )}
-                      {user.is_verified ? 'Verified' : 'Unverified'}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => toggleUserStatus(user.id, 'is_admin')}
-                      className={`flex items-center px-3 py-1 rounded-full text-sm transition-colors hover:opacity-80 ${
-                        user.is_admin
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      <Shield className="h-4 w-4 mr-1" />
-                      {user.is_admin ? 'Admin' : 'User'}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => toggleActiveStatus(user.id, user.is_active !== false)}
-                      className={`flex items-center px-3 py-1 rounded-full text-sm transition-colors hover:opacity-80 ${user.is_active === false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                    >
-                      {user.is_active === false ? 'Reactivate' : 'Deactivate'}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => openUserDrawer(user)}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
