@@ -162,7 +162,7 @@ export function OnboardingDemo() {
             <div className="flex justify-between items-center">
               <Link to="/" className="flex items-center">
                 <img
-                  src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos//logo-black.png`}
+                  src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/logo-black.png`}
                   alt="EquityMD"
                   className="h-8"
                 />
@@ -331,7 +331,7 @@ export function OnboardingDemo() {
           <div className="flex justify-between items-center">
             <Link to="/" className="flex items-center">
               <img
-                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos//logo-black.png`}
+                src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/logo-black.png`}
                 alt="EquityMD"
                 className="h-8"
               />

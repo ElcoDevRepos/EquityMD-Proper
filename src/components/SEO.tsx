@@ -15,7 +15,7 @@ interface SEOProps {
 export function SEO({ 
   title = 'Equitymd.com | Top CRE Syndication for 10K Investors',
   description = 'Skyrocket your CRE deals with 10K elite investors! List for $149/month, start free. Join Equitymd.com\'s top platform now—no fees to browse deals!',
-  image = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos//logo-black.png`,
+  image = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/logo-black.png`,
   url = typeof window !== 'undefined' ? window.location.href : 'https://equitymd.com',
   type = 'website',
   noindex = false,
@@ -74,7 +74,7 @@ export function SEO({
             "name": "EquityMD",
             "alternateName": "EquityMD CRE Syndication Platform",
             "url": "https://equitymd.com",
-            "logo": `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos//logo-black.png`,
+            "logo": `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logos/logo-black.png`,
             "sameAs": [
               "https://twitter.com/equitymd",
               "https://linkedin.com/company/equitymd"
