@@ -118,7 +118,7 @@ export function UserManagement() {
         .eq('id', userId)
         .select();
       if (error) throw error;
-      setUsers(users.map(u => u.id === userId ? { ...u, is_active: !currentStatus } : u));
+      setUsers(users.map((u: UserData) => u.id === userId ? { ...u, is_active: !currentStatus } : u));
       if (selectedUser && selectedUser.id === userId) {
         setSelectedUser({ ...selectedUser, is_active: !currentStatus });
       }
@@ -127,7 +127,7 @@ export function UserManagement() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  const filteredUsers = users.filter((user: UserData) => {
     const matchesSearch = 
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -143,7 +143,7 @@ export function UserManagement() {
 
   const toggleUserStatus = async (userId: string, field: 'is_verified' | 'is_admin') => {
     try {
-      const user = users.find(u => u.id === userId);
+      const user = users.find((u: UserData) => u.id === userId);
       if (!user) {
         throw new Error('User not found');
       }
